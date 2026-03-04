@@ -1,0 +1,38 @@
+name: Start Postgres
+description: Start a Postgres container via docker run and wait for readiness
+
+inputs:
+  db-name:
+    description: Postgres database name
+    required: true
+  user:
+    description: Postgres user
+    default: "postgres"
+  password:
+    description: Postgres password
+    default: "postgres"
+
+runs:
+  using: composite
+  steps:
+    - name: Start Postgres container
+      shell: bash
+      run: |
+        docker run -d --name postgres \
+          -e POSTGRES_USER=${{ inputs.user }} \
+          -e POSTGRES_PASSWORD=${{ inputs.password }} \
+          -e POSTGRES_DB=${{ inputs.db-name }} \
+          -p 5432:5432 \
+          --health-cmd pg_isready \
+          --health-interval 10s \
+          --health-timeout 5s \
+          --health-retries 5 \
+          postgres:15
+
+    - name: Wait for Postgres
+      shell: bash
+      run: |
+        until docker exec postgres pg_isready -U ${{ inputs.user }}; do
+          echo "Waiting for Postgres..."
+          sleep 2
+        done

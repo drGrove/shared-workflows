@@ -1,0 +1,19 @@
+name: Rust Lint
+
+on:
+  workflow_call:
+
+jobs:
+  fmt:
+    name: cargo fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: drGrove/shared-workflows/actions/cargo-fmt@main
+
+  clippy:
+    name: cargo clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: drGrove/shared-workflows/actions/cargo-clippy@main

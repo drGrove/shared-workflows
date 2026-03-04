@@ -1,0 +1,35 @@
+name: Rust Test
+
+on:
+  workflow_call:
+    inputs:
+      postgres-db:
+        description: "PostgreSQL database name (empty to skip postgres)"
+        type: string
+        default: ""
+
+jobs:
+  cargo-test:
+    name: cargo test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Postgres
+        if: ${{ inputs.postgres-db != '' }}
+        uses: drGrove/shared-workflows/actions/start-postgres@main
+        with:
+          db-name: ${{ inputs.postgres-db }}
+
+      - name: Run tests
+        run: |
+          EXTRA_ARGS=""
+          if [ -n "${{ inputs.postgres-db }}" ]; then
+            EXTRA_ARGS="-e DATABASE_URL=postgres://postgres:postgres@localhost:5432/${{ inputs.postgres-db }}"
+          fi
+          docker run --rm --network host \
+            -v "${{ github.workspace }}:/src" \
+            $EXTRA_ARGS \
+            -w /src \
+            stagex/pallet-rust@sha256:84621c4c29330c8a969489671d46227a0a43f52cdae243f5b91e95781dbfe5ed \
+            cargo test

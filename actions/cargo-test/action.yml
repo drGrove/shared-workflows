@@ -1,0 +1,13 @@
+name: cargo test
+description: Run cargo test in a stagex container
+inputs:
+  container:
+    description: Container image
+    # 1.91.1
+    default: "docker://stagex/pallet-rust@sha256:84621c4c29330c8a969489671d46227a0a43f52cdae243f5b91e95781dbfe5ed"
+runs:
+  using: docker
+  image: ${{ inputs.container }}
+  args:
+    - cargo
+    - test

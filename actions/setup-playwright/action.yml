@@ -1,0 +1,27 @@
+name: Setup Playwright
+description: Install Node.js, project dependencies, and Playwright browsers
+
+inputs:
+  directory:
+    description: Directory containing E2E tests
+    default: "e2e"
+  node-version:
+    description: Node.js version
+    default: "18"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      run: npm ci
+
+    - name: Install Playwright browsers
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      run: npx playwright install --with-deps chromium
