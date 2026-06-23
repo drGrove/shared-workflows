@@ -1,0 +1,33 @@
+name: Rust Test (Postgres)
+
+on:
+  workflow_call:
+    inputs:
+      postgres-db:
+        description: "PostgreSQL database name"
+        type: string
+        required: true
+
+jobs:
+  cargo-test:
+    name: cargo test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ${{ inputs.postgres-db }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/${{ inputs.postgres-db }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: drGrove/shared-workflows/actions/cargo-test@main
