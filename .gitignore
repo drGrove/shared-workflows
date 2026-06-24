@@ -1,0 +1,5 @@
+tests/fixtures/rust/target/
+tests/fixtures/e2e/node_modules/
+tests/fixtures/e2e/playwright-report/
+tests/fixtures/e2e/blob-report/
+tests/fixtures/e2e/test-results/

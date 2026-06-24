@@ -2,6 +2,11 @@ name: Rust Lint
 
 on:
   workflow_call:
+    inputs:
+      working-directory:
+        description: "Directory containing Cargo.toml"
+        type: string
+        default: "."
 
 jobs:
   fmt:
@@ -10,6 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: drGrove/shared-workflows/actions/cargo-fmt@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
 
   clippy:
     name: cargo clippy
@@ -17,3 +24,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: drGrove/shared-workflows/actions/cargo-clippy@main
+        with:
+          working-directory: ${{ inputs.working-directory }}
