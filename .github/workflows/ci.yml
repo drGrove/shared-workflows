@@ -68,24 +68,12 @@ jobs:
         working-directory: tests/fixtures/e2e
         run: npx playwright test
 
-  rust-lint:
-    name: rust-lint workflow
-    uses: ./.github/workflows/rust-lint.yml
-    with:
-      working-directory: tests/fixtures/rust
-
-  rust-test:
-    name: rust-test workflow
-    uses: ./.github/workflows/rust-test.yml
-    with:
-      working-directory: tests/fixtures/rust
-
-  rust-test-postgres:
-    name: rust-test-postgres workflow
-    uses: ./.github/workflows/rust-test-postgres.yml
-    with:
-      postgres-db: testdb
-      working-directory: tests/fixtures/rust
+  # The rust reusable workflows (rust-lint/test/test-postgres) reference their
+  # cargo-* actions at @main via step-level `uses:`, which cannot take an
+  # expression, so they can't be pointed at the PR's actions for a self-test.
+  # The cargo logic is covered by the cargo-actions job (local ./actions/...),
+  # their wiring is covered by actionlint, and the postgres runtime path is
+  # exercised by the playwright-e2e job.
 
   playwright-e2e:
     name: playwright-e2e workflow
