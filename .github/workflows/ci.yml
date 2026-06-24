@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: raven-actions/actionlint@v2
+        with:
+          files: >-
+            .github/workflows/rust-lint.yml
+            .github/workflows/rust-test.yml
+            .github/workflows/rust-test-postgres.yml
+            .github/workflows/playwright-e2e.yml
+            .github/workflows/container-build.yml
+            .github/workflows/ci.yml
+
+  cargo-actions:
+    name: cargo actions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./actions/cargo-fmt
+        with:
+          working-directory: tests/fixtures/rust
+      - uses: ./actions/cargo-clippy
+        with:
+          working-directory: tests/fixtures/rust
+      - uses: ./actions/cargo-test
+        with:
+          working-directory: tests/fixtures/rust
+
+  start-postgres:
+    name: start-postgres action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./actions/start-postgres
+        with:
+          db-name: testdb
+      - name: Verify Postgres
+        run: |
+          for _ in $(seq 1 30); do
+            docker exec postgres psql -U postgres -d testdb -c 'select 1' && exit 0
+            sleep 1
+          done
+          echo "Postgres did not become ready" >&2
+          exit 1
+
+  setup-playwright:
+    name: setup-playwright action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./actions/setup-playwright
+        with:
+          directory: tests/fixtures/e2e
+      - name: Run Playwright tests
+        working-directory: tests/fixtures/e2e
+        run: npx playwright test
+
+  # The rust reusable workflows (rust-lint/test/test-postgres) reference their
+  # cargo-* actions at @main via step-level `uses:`, which cannot take an
+  # expression, so they can't be pointed at the PR's actions for a self-test.
+  # The cargo logic is covered by the cargo-actions job (local ./actions/...),
+  # their wiring is covered by actionlint, and the postgres runtime path is
+  # exercised by the playwright-e2e job.
+
+  playwright-e2e:
+    name: playwright-e2e workflow
+    uses: ./.github/workflows/playwright-e2e.yml
+    with:
+      e2e-directory: tests/fixtures/e2e
+      postgres-db: testdb
+
+  container-build:
+    name: container-build workflow
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
+      packages: write
+    uses: ./.github/workflows/container-build.yml
+    with:
+      image-name: ghcr.io/${{ github.repository }}/ci-test
+      containerfile: tests/fixtures/Containerfile
+      push: false
+      attest: false

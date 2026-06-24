@@ -1,8 +1,14 @@
 name: cargo fmt
 description: Run cargo fmt --check in a stagex container
+inputs:
+  working-directory:
+    description: Directory containing Cargo.toml
+    default: "."
 runs:
   using: docker
   image: docker://stagex/pallet-rust@sha256:84621c4c29330c8a969489671d46227a0a43f52cdae243f5b91e95781dbfe5ed
   args:
     - fmt
     - --check
+    - --manifest-path
+    - ${{ inputs.working-directory }}/Cargo.toml
