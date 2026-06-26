@@ -82,12 +82,12 @@ jobs:
       e2e-directory: tests/fixtures/e2e
       postgres-db: testdb
 
-  # push:false skips the publish job and attest:false skips the embedded
-  # provenance, so this self-test only exercises the credential-less build half
-  # (multi-arch OCI build + artifact upload). The publish job -- which holds the
-  # registry push creds AND the id-token/attestations signing material, isolated
-  # from the build steps -- and the signed-attestation path require registry
-  # writes and can't be self-tested from a PR.
+  # push:false skips the publish job, so this self-test only exercises the
+  # credential-less build half (multi-arch OCI build + artifact upload).
+  # provenance/sbom/attest are off to keep it fast. The publish job -- which
+  # holds the registry push creds AND the id-token/attestations signing
+  # material, isolated from the build steps -- and the signed-attestation path
+  # require registry writes and can't be self-tested from a PR.
   container-build:
     name: container-build workflow
     permissions:
@@ -100,4 +100,6 @@ jobs:
       image-name: ghcr.io/${{ github.repository }}/ci-test
       containerfile: tests/fixtures/Containerfile
       push: false
+      provenance: false
+      sbom: false
       attest: false

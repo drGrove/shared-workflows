@@ -19,8 +19,16 @@ on:
         description: "Push the built image to the registry"
         type: boolean
         default: false
+      provenance:
+        description: "Embed BuildKit SLSA provenance (mode=max) in the image"
+        type: boolean
+        default: true
+      sbom:
+        description: "Embed an SBOM in the image"
+        type: boolean
+        default: true
       attest:
-        description: "Embed SLSA provenance/SBOM and generate a signed SLSA Build L3 attestation"
+        description: "Generate a signed SLSA build provenance attestation (GitHub store)"
         type: boolean
         default: true
     outputs:
@@ -73,8 +81,8 @@ jobs:
           platforms: ${{ inputs.platforms }}
           push: false
           outputs: type=oci,dest=/tmp/image.tar,rewrite-timestamp=true
-          provenance: ${{ inputs.attest && 'mode=max' || 'false' }}
-          sbom: ${{ inputs.attest }}
+          provenance: ${{ inputs.provenance && 'mode=max' || 'false' }}
+          sbom: ${{ inputs.sbom }}
           labels: ${{ steps.meta.outputs.labels }}
         env:
           SOURCE_DATE_EPOCH: ${{ env.SOURCE_DATE_EPOCH }}
