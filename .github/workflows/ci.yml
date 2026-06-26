@@ -82,6 +82,12 @@ jobs:
       e2e-directory: tests/fixtures/e2e
       postgres-db: testdb
 
+  # push:false skips the publish job and attest:false skips the embedded
+  # provenance, so this self-test only exercises the credential-less build half
+  # (multi-arch OCI build + artifact upload). The publish job -- which holds the
+  # registry push creds AND the id-token/attestations signing material, isolated
+  # from the build steps -- and the signed-attestation path require registry
+  # writes and can't be self-tested from a PR.
   container-build:
     name: container-build workflow
     permissions:
